@@ -96,6 +96,12 @@ class Message
     public bool $significantChange = true;
 
     /**
+     * This will be set to true if the change should send a message, even when
+     * the iTip broker does not consider it significant.
+     */
+    public bool $hasChange = true;
+
+    /**
      * Returns the schedule status as a string.
      *
      * For example:
