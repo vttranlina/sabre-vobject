@@ -1620,6 +1620,29 @@ class RRuleIteratorTest extends TestCase
         );
     }
 
+    /**
+     * Test YEARLY recurrence with BYMONTH and BYMONTHDAY where DTSTART month differs from BYMONTH.
+     *
+     * Issue: https://github.com/linagora/esn-sabre/issues/50
+     *
+     * When DTSTART is April 11 but RRULE specifies BYMONTH=5 (May) and BYMONTHDAY=15,
+     * the first occurrence should be May 15, not April 15.
+     */
+    public function testYearlyByMonthByMonthDayDifferentFromDTSTART(): void
+    {
+        $this->parse(
+            'FREQ=YEARLY;BYMONTH=5;BYMONTHDAY=15;COUNT=3',
+            '2030-04-11 10:00:00',
+            [
+                '2030-05-15 10:00:00',
+                '2031-05-15 10:00:00',
+                '2032-05-15 10:00:00',
+            ],
+            null,
+            'Asia/Ho_Chi_Minh'
+        );
+    }
+
     public function parse($rule, string $start, array $expected, ?string $fastForward = null, string $tz = 'UTC', bool $runTillTheEnd = false): void
     {
         $dt = new \DateTime($start, new \DateTimeZone($tz));
