@@ -1437,12 +1437,15 @@ class RRuleIteratorTest extends TestCase
 
     public static function yearlyStartDateNotOnRRuleListProvider(): array
     {
+        // When DTSTART does not match BYMONTH/BYDAY rules, the first occurrence
+        // should be the first valid date according to the RRULE, not DTSTART itself.
+        // See: https://github.com/linagora/esn-sabre/issues/50
         return [
             [
                 'FREQ=YEARLY;BYMONTH=6;BYDAY=-1FR;UNTIL=20250901T000000Z',
                 '2023-09-01 12:00:00',
                 [
-                    '2023-09-01 12:00:00',
+                    // DTSTART (2023-09-01) is not in June, so first occurrence is June 2024
                     '2024-06-28 12:00:00',
                     '2025-06-27 12:00:00',
                 ],
@@ -1451,7 +1454,8 @@ class RRuleIteratorTest extends TestCase
                 'FREQ=YEARLY;BYMONTH=6;BYDAY=-1FR;UNTIL=20250901T000000Z',
                 '2023-06-01 12:00:00',
                 [
-                    '2023-06-01 12:00:00',
+                    // DTSTART (2023-06-01) is in June but is not the last Friday,
+                    // so first occurrence is the last Friday of June 2023
                     '2023-06-30 12:00:00',
                     '2024-06-28 12:00:00',
                     '2025-06-27 12:00:00',
@@ -1461,7 +1465,7 @@ class RRuleIteratorTest extends TestCase
                 'FREQ=YEARLY;BYMONTH=6;BYDAY=-1FR;UNTIL=20250901T000000Z',
                 '2023-05-01 12:00:00',
                 [
-                    '2023-05-01 12:00:00',
+                    // DTSTART (2023-05-01) is not in June, so first occurrence is June 2023
                     '2023-06-30 12:00:00',
                     '2024-06-28 12:00:00',
                     '2025-06-27 12:00:00',
