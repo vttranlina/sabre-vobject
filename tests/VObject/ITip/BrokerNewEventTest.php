@@ -651,7 +651,7 @@ END:VALARM
 END:VEVENT
 END:VCALENDAR
 ICS;
-        $version = \Sabre\VObject\Version::VERSION;
+        $version = Version::VERSION;
         $expectedMessage = <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
@@ -676,17 +676,16 @@ END:VCALENDAR
 ICS;
         $expected = [
             [
-                'uid'           => 'foobar',
-                'method'        => 'REQUEST',
-                'component'     => 'VEVENT',
-                'sender'        => 'mailto:strunk@example.org',
-                'senderName'    => 'Strunk',
-                'recipient'     => 'mailto:white@example.org',
+                'uid' => 'foobar',
+                'method' => 'REQUEST',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:strunk@example.org',
+                'senderName' => 'Strunk',
+                'recipient' => 'mailto:white@example.org',
                 'recipientName' => 'White',
-                'message'       => $expectedMessage,
+                'message' => $expectedMessage,
             ],
         ];
         $this->parse(null, $message, $expected, 'mailto:strunk@example.org');
     }
-
 }

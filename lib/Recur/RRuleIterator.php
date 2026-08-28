@@ -52,7 +52,7 @@ class RRuleIterator implements \Iterator
     /**
      * For YEARLY frequency with BYMONTH, check if DTSTART matches the rules.
      * If not, advance to the first valid occurrence without incrementing the counter.
-     * See: https://github.com/linagora/esn-sabre/issues/50
+     * See: https://github.com/linagora/esn-sabre/issues/50.
      */
     private function skipInvalidStart(): void
     {

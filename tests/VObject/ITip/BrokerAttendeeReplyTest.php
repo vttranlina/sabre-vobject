@@ -285,17 +285,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=ACCEPTED;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
+ICS,
             ],
             [
-                'uid'           => 'foobar',
-                'method'        => 'REPLY',
-                'component'     => 'VEVENT',
-                'sender'        => 'mailto:one@example.org',
-                'senderName'    => 'One',
-                'recipient'     => 'mailto:strunk@example.org',
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
                 'recipientName' => 'Strunk',
-                'message'       => <<<ICS
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -312,17 +312,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=DECLINED;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
+ICS,
             ],
             [
-                'uid'           => 'foobar',
-                'method'        => 'REPLY',
-                'component'     => 'VEVENT',
-                'sender'        => 'mailto:one@example.org',
-                'senderName'    => 'One',
-                'recipient'     => 'mailto:strunk@example.org',
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
                 'recipientName' => 'Strunk',
-                'message'       => <<<ICS
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -339,17 +339,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=TENTATIVE;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
+ICS,
             ],
             [
-                'uid'           => 'foobar',
-                'method'        => 'REPLY',
-                'component'     => 'VEVENT',
-                'sender'        => 'mailto:one@example.org',
-                'senderName'    => 'One',
-                'recipient'     => 'mailto:strunk@example.org',
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
                 'recipientName' => 'Strunk',
-                'message'       => <<<ICS
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -366,17 +366,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=ACCEPTED;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
+ICS,
             ],
             [
-                'uid'           => 'foobar',
-                'method'        => 'REPLY',
-                'component'     => 'VEVENT',
-                'sender'        => 'mailto:one@example.org',
-                'senderName'    => 'One',
-                'recipient'     => 'mailto:strunk@example.org',
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
                 'recipientName' => 'Strunk',
-                'message'       => <<<ICS
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -496,18 +496,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=ACCEPTED;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
-
-        ],
-        [
-            'uid'           => 'foobar',
-            'method'        => 'REPLY',
-            'component'     => 'VEVENT',
-            'sender'        => 'mailto:one@example.org',
-            'senderName'    => 'One',
-            'recipient'     => 'mailto:strunk@example.org',
-            'recipientName' => 'Strunk',
-            'message'       => <<<ICS
+ICS,
+            ],
+            [
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
+                'recipientName' => 'Strunk',
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -523,18 +522,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=DECLINED;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
-
-        ],
-        [
-            'uid'           => 'foobar',
-            'method'        => 'REPLY',
-            'component'     => 'VEVENT',
-            'sender'        => 'mailto:one@example.org',
-            'senderName'    => 'One',
-            'recipient'     => 'mailto:strunk@example.org',
-            'recipientName' => 'Strunk',
-            'message'       => <<<ICS
+ICS,
+            ],
+            [
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
+                'recipientName' => 'Strunk',
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -550,18 +548,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=TENTATIVE;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
-
-        ],
-        [
-            'uid'           => 'foobar',
-            'method'        => 'REPLY',
-            'component'     => 'VEVENT',
-            'sender'        => 'mailto:one@example.org',
-            'senderName'    => 'One',
-            'recipient'     => 'mailto:strunk@example.org',
-            'recipientName' => 'Strunk',
-            'message'       => <<<ICS
+ICS,
+            ],
+            [
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
+                'recipientName' => 'Strunk',
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -577,18 +574,17 @@ ORGANIZER;CN=Strunk:mailto:strunk@example.org
 ATTENDEE;PARTSTAT=ACCEPTED;CN=One:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
-
-        ],
-        [
-            'uid'           => 'foobar',
-            'method'        => 'REPLY',
-            'component'     => 'VEVENT',
-            'sender'        => 'mailto:one@example.org',
-            'senderName'    => 'One',
-            'recipient'     => 'mailto:strunk@example.org',
-            'recipientName' => 'Strunk',
-            'message'       => <<<ICS
+ICS,
+            ],
+            [
+                'uid' => 'foobar',
+                'method' => 'REPLY',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:one@example.org',
+                'senderName' => 'One',
+                'recipient' => 'mailto:strunk@example.org',
+                'recipientName' => 'Strunk',
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
@@ -1448,7 +1444,7 @@ ORGANIZER:mailto:organizer@example.org
 ATTENDEE;PARTSTAT=ACCEPTED:mailto:one@example.org
 END:VEVENT
 END:VCALENDAR
-ICS
+ICS,
             ],
             [
                 'uid' => 'foobar',

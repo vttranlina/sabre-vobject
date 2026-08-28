@@ -300,7 +300,7 @@ class Broker
             // We need to update an existing object with all the new information.
             // We start by removing all non-VEVENT components (VTIMEZONE, etc.)
             foreach ($existingObject->getComponents() as $component) {
-                if ($component->name !== 'VEVENT') {
+                if ('VEVENT' !== $component->name) {
                     $existingObject->remove($component);
                 }
             }
@@ -314,7 +314,7 @@ class Broker
 
             // Then we iterate over the iTip to add new or updated components to the original calendar object
             foreach ($itipMessage->message->getComponents() as $component) {
-                if ($component->name !== 'VEVENT') {
+                if ('VEVENT' !== $component->name) {
                     $existingObject->add(clone $component);
                 } else {
                     // It's an exception to a recurring event, we try to find it in the original event to remove it
@@ -371,14 +371,14 @@ class Broker
             foreach ($existingObject->VEVENT as $vevent) {
                 $recurIdTimestamp = isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime()->getTimeStamp() : 'master';
 
-                if ($recurIdTimestamp === 'master') {
+                if ('master' === $recurIdTimestamp) {
                     $masterObject = $vevent;
                 }
 
                 if ($cancelWholeEvent) {
                     $vevent->STATUS = 'CANCELLED';
                     $vevent->SEQUENCE = $itipMessage->sequence;
-                } else if (isset($instancesToCancel[$recurIdTimestamp])) {
+                } elseif (isset($instancesToCancel[$recurIdTimestamp])) {
                     $existingObject->remove($vevent);
                 }
             }
@@ -388,7 +388,6 @@ class Broker
                 $masterTimeZone = $masterObject->DTSTART->getDateTime()->getTimeZone();
 
                 if (isset($masterObject->EXDATE)) {
-
                     $exDates = $masterObject->EXDATE->getDateTimes();
                     // We only need to update the first timezone, because
                     // setDateTimes will match all other timezones to the
@@ -402,7 +401,6 @@ class Broker
                         if (isset($instancesToCancel[$exDateTimeStamp])) {
                             unset($instancesToCancel[$exDateTimeStamp]);
                         }
-
                     }
                 }
 
@@ -419,7 +417,6 @@ class Broker
                 if (isset($masterObject->EXDATE['TZID'])) {
                     $masterObject->EXDATE['TZID'] = $masterObject->DTSTART['TZID'];
                 }
-
             }
         }
 
@@ -454,8 +451,8 @@ class Broker
             $recurIdTimestamp = isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime()->getTimestamp() : 'master';
             $attendee = $vevent->ATTENDEE;
             $instances[$recurIdTimestamp] = [
-                'partstat'        => $attendee['PARTSTAT']->getValue(),
-                'recurIdDateTime' => isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime() : null
+                'partstat' => $attendee['PARTSTAT']->getValue(),
+                'recurIdDateTime' => isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime() : null,
             ];
             if (isset($vevent->{'REQUEST-STATUS'})) {
                 $requestStatus = $vevent->{'REQUEST-STATUS'}->getValue();
@@ -491,7 +488,7 @@ class Broker
                     // Adding a new attendee. The iTip documentation calls this
                     // a party crasher.
                     $attendee = $vevent->add('ATTENDEE', $itipMessage->sender, [
-                        'PARTSTAT' => $instances[$recurIdTimestamp]['partstat']
+                        'PARTSTAT' => $instances[$recurIdTimestamp]['partstat'],
                     ]);
                     if ($itipMessage->senderName) {
                         $attendee['CN'] = $itipMessage->senderName;
@@ -547,7 +544,7 @@ class Broker
             if (!$attendeeFound) {
                 // Adding a new attendee
                 $attendee = $newObject->add('ATTENDEE', $itipMessage->sender, [
-                    'PARTSTAT' => $instance['partstat']
+                    'PARTSTAT' => $instance['partstat'],
                 ]);
                 if ($itipMessage->senderName) {
                     $attendee['CN'] = $itipMessage->senderName;
@@ -681,12 +678,12 @@ class Broker
                     || $oldEventInfo['significantChangeHash'] !== $eventInfo['significantChangeHash'];
 
                 $message->hasChange =
-                    $message->significantChange ||
-                    $oldEventInfo['changeHash'] !== $eventInfo['changeHash'];
+                    $message->significantChange
+                    || $oldEventInfo['changeHash'] !== $eventInfo['changeHash'];
 
                 foreach ($attendee['newInstances'] as $instanceId => $instanceInfo) {
                     $currentEvent = clone $eventInfo['instances'][$instanceId];
-                    if (isset($currentEvent->VALARM) && $currentEvent->VALARM->ACTION->getValue() === 'EMAIL') {
+                    if (isset($currentEvent->VALARM) && 'EMAIL' === $currentEvent->VALARM->ACTION->getValue()) {
                         $currentEvent->VALARM->ATTENDEE->setValue($attendee['href']);
                     }
 
