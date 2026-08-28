@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class JCalTest extends TestCase
 {
-    public function testToJCal()
+    public function testToJCal(): void
     {
         $cal = new Component\VCalendar();
 
@@ -97,7 +97,7 @@ class JCalTest extends TestCase
                             'sequence', new \stdClass(), 'integer', 5,
                         ],
                         [
-                            'freebusy', new \StdClass(), 'period',  ['2013-05-26T21:02:13Z', 'PT1H'], ['2013-06-26T12:00:00Z', '2013-06-26T13:00:00Z'],
+                            'freebusy', new \stdClass(), 'period',  ['2013-05-26T21:02:13Z', 'PT1H'], ['2013-06-26T12:00:00Z', '2013-06-26T13:00:00Z'],
                         ],
                         [
                             'url', new \stdClass(), 'uri', 'http://example.org/',
@@ -144,6 +144,6 @@ class JCalTest extends TestCase
             ],
         ];
 
-        $this->assertEquals($expected, $cal->jsonSerialize());
+        self::assertEquals($expected, $cal->jsonSerialize());
     }
 }

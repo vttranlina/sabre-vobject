@@ -2,11 +2,15 @@
 
 namespace Sabre\VObject\ITip;
 
-use DateTimeZone;
 use Sabre\VObject\Component\VCalendar;
+use Sabre\VObject\Component\VEvent;
 use Sabre\VObject\DateTimeParser;
+use Sabre\VObject\InvalidDataException;
+use Sabre\VObject\ParseException;
 use Sabre\VObject\Reader;
 use Sabre\VObject\Recur\EventIterator;
+use Sabre\VObject\Recur\MaxInstancesExceededException;
+use Sabre\VObject\Recur\NoInstancesException;
 
 /**
  * The ITip\Broker class is a utility class that helps with processing
@@ -14,7 +18,7 @@ use Sabre\VObject\Recur\EventIterator;
  *
  * iTip is defined in rfc5546, stands for iCalendar Transport-Independent
  * Interoperability Protocol, and describes the underlying mechanism for
- * using iCalendar for scheduling for for example through email (also known as
+ * using iCalendar for scheduling, for example, through email (also known as
  * IMip) and CalDAV Scheduling.
  *
  * This class helps by:
@@ -28,7 +32,7 @@ use Sabre\VObject\Recur\EventIterator;
  *    a received invite.
  * 4. It can also process an invite update on a local event, ensuring that any
  *    overridden properties from attendees are retained.
- * 5. It can create a accepted or declined iTip reply based on an invite.
+ * 5. It can create an accepted or declined iTip reply based on an invite.
  * 6. It can process a reply from an invite and update an events attendee
  *     status based on a reply.
  *
@@ -50,10 +54,8 @@ class Broker
      * CLIENT will be ignored. This is the desired behavior for a CalDAV
      * server, but if you're writing an iTip application that doesn't deal with
      * CalDAV, you may want to ignore this parameter.
-     *
-     * @var bool
      */
-    public $scheduleAgentServerRules = true;
+    public bool $scheduleAgentServerRules = true;
 
     /**
      * The broker will try during 'parseEvent' figure out whether the change
@@ -67,7 +69,7 @@ class Broker
      *
      * @var string[]
      */
-    public $significantChangeProperties = [
+    public array $significantChangeProperties = [
         'DTSTART',
         'DTEND',
         'DURATION',
@@ -78,10 +80,10 @@ class Broker
         'STATUS',
     ];
 
-    public $changeProperties = [
+    public array $changeProperties = [
         'LOCATION',
         'SUMMARY',
-        'DESCRIPTION'
+        'DESCRIPTION',
     ];
 
     /**
@@ -111,9 +113,11 @@ class Broker
      *
      * If the iTip message was not supported, we will always return false.
      *
-     * @param VCalendar $existingObject
+     * @return VCalendar|false|void|null
      *
-     * @return VCalendar|null
+     * @throws InvalidDataException
+     * @throws MaxInstancesExceededException
+     * @throws NoInstancesException
      */
     public function processMessage(Message $itipMessage, ?VCalendar $existingObject = null)
     {
@@ -136,8 +140,6 @@ class Broker
                 // Unsupported iTip message
                 return;
         }
-
-        return $existingObject;
     }
 
     /**
@@ -167,9 +169,12 @@ class Broker
      * @param string|array          $userHref
      * @param VCalendar|string|null $oldCalendar
      *
-     * @return array
+     * @throws ITipException
+     * @throws InvalidDataException
+     * @throws ParseException
+     * @throws SameOrganizerForAllComponentsException
      */
-    public function parseEvent($calendar, $userHref, $oldCalendar = null)
+    public function parseEvent($calendar, $userHref, $oldCalendar = null): array
     {
         if ($oldCalendar) {
             if (is_string($oldCalendar)) {
@@ -223,13 +228,13 @@ class Broker
             // The calendar object got deleted, we need to process this as a
             // cancellation / decline.
             if (!$oldCalendar) {
-                // No old and no new calendar, there's no thing to do.
+                // No old and no new calendar, there's nothing to do.
                 return [];
             }
 
             $eventInfo = $oldEventInfo;
 
-            if (in_array($eventInfo['organizer'], $userHref)) {
+            if (in_array($eventInfo['organizer'], $userHref, true)) {
                 // This is an organizer deleting the event.
                 $eventInfo['attendees'] = [];
                 // Increasing the sequence, but only if the organizer deleted
@@ -238,7 +243,7 @@ class Broker
             } else {
                 // This is an attendee deleting the event.
                 foreach ($eventInfo['attendees'] as $key => $attendee) {
-                    if (in_array($attendee['href'], $userHref)) {
+                    if (in_array($attendee['href'], $userHref, true)) {
                         $eventInfo['attendees'][$key]['instances'] = ['master' => ['id' => 'master', 'partstat' => 'DECLINED'],
                         ];
                     }
@@ -248,13 +253,13 @@ class Broker
         }
 
         // Check if the user is the organizer
-        if (in_array($eventInfo['organizer'], $userHref)) {
+        if (in_array($eventInfo['organizer'], $userHref, true)) {
             return $this->parseEventForOrganizer($baseCalendar, $eventInfo, $oldEventInfo);
         }
 
         // Check if the user is an attendee
         foreach ($eventInfo['attendees'] as $attendee) {
-            if (in_array($attendee['href'], $userHref)) {
+            if (in_array($attendee['href'], $userHref, true)) {
                 // If this is a event update, we always generate a reply
                 if ($oldCalendar) {
                     return $this->parseEventForAttendee($baseCalendar, $eventInfo, $oldEventInfo, $attendee['href']);
@@ -281,12 +286,8 @@ class Broker
      *
      * This is message from an organizer, and is either a new event
      * invite, or an update to an existing one.
-     *
-     * @param VCalendar $existingObject
-     *
-     * @return VCalendar|null
      */
-    protected function processMessageRequest(Message $itipMessage, ?VCalendar $existingObject = null)
+    protected function processMessageRequest(Message $itipMessage, ?VCalendar $existingObject = null): ?VCalendar
     {
         if (!$existingObject) {
             // This is a new invite, and we're just going to copy over
@@ -299,7 +300,7 @@ class Broker
             // We need to update an existing object with all the new information.
             // We start by removing all non-VEVENT components (VTIMEZONE, etc.)
             foreach ($existingObject->getComponents() as $component) {
-                if ($component->name !== 'VEVENT') {
+                if ('VEVENT' !== $component->name) {
                     $existingObject->remove($component);
                 }
             }
@@ -314,13 +315,13 @@ class Broker
 
             // Then we iterate over the iTip to add new or updated components to the original calendar object
             foreach ($itipMessage->message->getComponents() as $component) {
-                if ($component->name !== 'VEVENT') {
+                if ('VEVENT' !== $component->name) {
                     $existingObject->add(clone $component);
                 } else {
                     // It's an exception to a recurring event, we try to find it in the original event to remove it
                     if (isset($component->{'RECURRENCE-ID'})) {
                         foreach ($existingObject->select('VEVENT') as $vEvent) {
-                            if (isset($vEvent->{'RECURRENCE-ID'}) && ($vEvent->{'RECURRENCE-ID'}->getDateTime() == $component->{'RECURRENCE-ID'}->getDateTime())) {
+                            if (isset($vEvent->{'RECURRENCE-ID'}) && $vEvent->{'RECURRENCE-ID'}->getDateTime()->getTimestamp() === $component->{'RECURRENCE-ID'}->getDateTime()->getTimestamp()) {
                                 $existingObject->remove($vEvent);
 
                                 break;
@@ -342,12 +343,8 @@ class Broker
      * This is a message from an organizer, and means that either an
      * attendee got removed from an event, or an event got cancelled
      * altogether.
-     *
-     * @param VCalendar $existingObject
-     *
-     * @return VCalendar|null
      */
-    protected function processMessageCancel(Message $itipMessage, ?VCalendar $existingObject = null)
+    protected function processMessageCancel(Message $itipMessage, ?VCalendar $existingObject = null): ?VCalendar
     {
         if (!$existingObject) {
             // The event didn't exist in the first place, so we're just
@@ -375,24 +372,23 @@ class Broker
             foreach ($existingObject->VEVENT as $vevent) {
                 $recurIdTimestamp = isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime()->getTimeStamp() : 'master';
 
-                if ($recurIdTimestamp === 'master') {
+                if ('master' === $recurIdTimestamp) {
                     $masterObject = $vevent;
                 }
 
                 if ($cancelWholeEvent) {
                     $vevent->STATUS = 'CANCELLED';
                     $vevent->SEQUENCE = $itipMessage->sequence;
-                } else if (isset($instancesToCancel[$recurIdTimestamp])) {
+                } elseif (isset($instancesToCancel[$recurIdTimestamp])) {
                     $existingObject->remove($vevent);
                 }
             }
 
             if (!$cancelWholeEvent) {
                 $exDates = [];
-                $masterTimeZone = isset($masterObject->EXDATE) ? $masterObject->DTSTART->getDateTime()->getTimeZone() : new DateTimeZone('UTC');
+                $masterTimeZone = $masterObject->DTSTART->getDateTime()->getTimeZone();
 
                 if (isset($masterObject->EXDATE)) {
-
                     $exDates = $masterObject->EXDATE->getDateTimes();
                     // We only need to update the first timezone, because
                     // setDateTimes will match all other timezones to the
@@ -406,12 +402,11 @@ class Broker
                         if (isset($instancesToCancel[$exDateTimeStamp])) {
                             unset($instancesToCancel[$exDateTimeStamp]);
                         }
-
                     }
                 }
 
                 foreach ($instancesToCancel as $instance) {
-                    $instance->setTimezone($masterTimeZone);
+                    $instance = $instance->setTimezone($masterTimeZone);
                     $exDates[] = $instance;
                 }
 
@@ -423,7 +418,6 @@ class Broker
                 if (isset($masterObject->EXDATE['TZID'])) {
                     $masterObject->EXDATE['TZID'] = $masterObject->DTSTART['TZID'];
                 }
-
             }
         }
 
@@ -436,16 +430,16 @@ class Broker
      * The message is a reply. This is for example an attendee telling
      * an organizer he accepted the invite, or declined it.
      *
-     * @param VCalendar $existingObject
-     *
-     * @return VCalendar|null
+     * @throws InvalidDataException
+     * @throws MaxInstancesExceededException
+     * @throws NoInstancesException
      */
-    protected function processMessageReply(Message $itipMessage, ?VCalendar $existingObject = null)
+    protected function processMessageReply(Message $itipMessage, ?VCalendar $existingObject = null): ?VCalendar
     {
         // A reply can only be processed based on an existing object.
         // If the object is not available, the reply is ignored.
         if (!$existingObject) {
-            return;
+            return null;
         }
         $instances = [];
         $requestStatus = '2.0';
@@ -458,12 +452,12 @@ class Broker
             $recurIdTimestamp = isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime()->getTimestamp() : 'master';
             $attendee = $vevent->ATTENDEE;
             $instances[$recurIdTimestamp] = [
-                'partstat'        => $attendee['PARTSTAT']->getValue(),
-                'recurIdDateTime' => isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime() : null
+                'partstat' => $attendee['PARTSTAT']->getValue(),
+                'recurIdDateTime' => isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getDateTime() : null,
             ];
             if (isset($vevent->{'REQUEST-STATUS'})) {
                 $requestStatus = $vevent->{'REQUEST-STATUS'}->getValue();
-                list($requestStatus) = explode(';', $requestStatus);
+                [$requestStatus] = explode(';', $requestStatus);
             }
         }
 
@@ -495,7 +489,7 @@ class Broker
                     // Adding a new attendee. The iTip documentation calls this
                     // a party crasher.
                     $attendee = $vevent->add('ATTENDEE', $itipMessage->sender, [
-                        'PARTSTAT' => $instances[$recurIdTimestamp]['partstat']
+                        'PARTSTAT' => $instances[$recurIdTimestamp]['partstat'],
                     ]);
                     if ($itipMessage->senderName) {
                         $attendee['CN'] = $itipMessage->senderName;
@@ -507,7 +501,7 @@ class Broker
 
         if (!$masterObject) {
             // No master object, we can't add new instances.
-            return;
+            return null;
         }
         // If we got replies to instances that did not exist in the
         // original list, it means that new exceptions must be created.
@@ -551,7 +545,7 @@ class Broker
             if (!$attendeeFound) {
                 // Adding a new attendee
                 $attendee = $newObject->add('ATTENDEE', $itipMessage->sender, [
-                    'PARTSTAT' => $instance['partstat']
+                    'PARTSTAT' => $instance['partstat'],
                 ]);
                 if ($itipMessage->senderName) {
                     $attendee['CN'] = $itipMessage->senderName;
@@ -570,10 +564,8 @@ class Broker
      *
      * We will detect which attendees got added, which got removed and create
      * specific messages for these situations.
-     *
-     * @return array
      */
-    protected function parseEventForOrganizer(VCalendar $calendar, array $eventInfo, array $oldEventInfo)
+    protected function parseEventForOrganizer(VCalendar $calendar, array $eventInfo, array $oldEventInfo): array
     {
         // Merging attendee lists.
         $attendees = [];
@@ -635,6 +627,7 @@ class Broker
 
                 $icalMsg->METHOD = $message->method;
 
+                /** @var VEvent $event */
                 $event = $icalMsg->add('VEVENT', [
                     'UID' => $message->uid,
                     'SEQUENCE' => $message->sequence,
@@ -657,7 +650,7 @@ class Broker
                     'CN' => $attendee['name'],
                 ]);
 
-                if(isset($calendar->VEVENT->VALARM) && $calendar->VEVENT->VALARM->ACTION->getValue() == 'EMAIL') {
+                if (isset($calendar->VEVENT->VALARM) && 'EMAIL' === $calendar->VEVENT->VALARM->ACTION->getValue()) {
                     $event->add(clone $calendar->VEVENT->VALARM);
                     $event->VALARM->ATTENDEE->setValue($attendee['href']);
                 }
@@ -680,18 +673,18 @@ class Broker
                 $newAttendeeInstances = array_keys($attendee['newInstances']);
 
                 $message->significantChange =
-                    'REQUEST' === $attendee['forceSend'] ||
-                    count($oldAttendeeInstances) != count($newAttendeeInstances) ||
-                    count(array_diff($oldAttendeeInstances, $newAttendeeInstances)) > 0 ||
-                    $oldEventInfo['significantChangeHash'] !== $eventInfo['significantChangeHash'];
+                    'REQUEST' === $attendee['forceSend']
+                    || count($oldAttendeeInstances) !== count($newAttendeeInstances)
+                    || count(array_diff($oldAttendeeInstances, $newAttendeeInstances)) > 0
+                    || $oldEventInfo['significantChangeHash'] !== $eventInfo['significantChangeHash'];
 
                 $message->hasChange =
-                    $message->significantChange ||
-                    $oldEventInfo['changeHash'] !== $eventInfo['changeHash'];
+                    $message->significantChange
+                    || $oldEventInfo['changeHash'] !== $eventInfo['changeHash'];
 
                 foreach ($attendee['newInstances'] as $instanceId => $instanceInfo) {
                     $currentEvent = clone $eventInfo['instances'][$instanceId];
-                    if(isset($currentEvent->VALARM) && $currentEvent->VALARM->ACTION->getValue() == 'EMAIL') {
+                    if (isset($currentEvent->VALARM) && 'EMAIL' === $currentEvent->VALARM->ACTION->getValue()) {
                         $currentEvent->VALARM->ATTENDEE->setValue($attendee['href']);
                     }
 
@@ -699,9 +692,9 @@ class Broker
                         // We need to find a list of events that the attendee
                         // is not a part of to add to the list of exceptions.
                         $exceptions = [];
-                        foreach ($eventInfo['instances'] as $instanceId => $vevent) {
-                            if (!isset($attendee['newInstances'][$instanceId])) {
-                                $exceptions[] = $instanceId;
+                        foreach ($eventInfo['instances'] as $eventInstanceId => $vevent) {
+                            if (!isset($attendee['newInstances'][$eventInstanceId])) {
+                                $exceptions[] = $eventInstanceId;
                             }
                         }
 
@@ -755,11 +748,11 @@ class Broker
      *
      * This function figures out if we need to send a reply to an organizer.
      *
-     * @param string $attendee
-     *
      * @return Message[]
+     *
+     * @throws InvalidDataException
      */
-    protected function parseEventForAttendee(VCalendar $calendar, array $eventInfo, array $oldEventInfo, $attendee)
+    protected function parseEventForAttendee(VCalendar $calendar, array $eventInfo, array $oldEventInfo, string $attendee): array
     {
         if ($this->scheduleAgentServerRules && 'CLIENT' === $eventInfo['organizerScheduleAgent']) {
             return [];
@@ -771,7 +764,12 @@ class Broker
             return [];
         }
 
-        $oldInstances = !empty($oldEventInfo['attendees'][$attendee]['instances']) ?
+        $oldInstances =
+            is_array($oldEventInfo['attendees'])
+            && array_key_exists($attendee, $oldEventInfo['attendees'])
+            && is_array($oldEventInfo['attendees'][$attendee])
+            && array_key_exists('instances', $oldEventInfo['attendees'][$attendee])
+            && is_array($oldEventInfo['attendees'][$attendee]['instances']) ?
             $oldEventInfo['attendees'][$attendee]['instances'] :
             [];
 
@@ -802,7 +800,7 @@ class Broker
         // We only need to do that though, if the master event is not declined.
         if (isset($instances['master']) && 'DECLINED' !== $instances['master']['newstatus']) {
             foreach ($eventInfo['exdate'] as $exDate) {
-                if (!in_array($exDate, $oldEventInfo['exdate'] ?? [])) {
+                if (!in_array($exDate, $oldEventInfo['exdate'] ?? [], true)) {
                     if (isset($instances[$exDate])) {
                         $instances[$exDate]['newstatus'] = 'DECLINED';
                     } else {
@@ -828,7 +826,7 @@ class Broker
         $messages = [];
 
         foreach ($instances as $instance) {
-            if ($instance['oldstatus'] == $instance['newstatus'] && 'REPLY' !== $eventInfo['organizerForceSend']) {
+            if ($instance['oldstatus'] === $instance['newstatus'] && 'REPLY' !== $eventInfo['organizerForceSend']) {
                 // Skip
                 continue;
             }
@@ -849,6 +847,7 @@ class Broker
                 $icalMsg->add(clone $timezone);
             }
 
+            /** @var VEvent $event */
             $event = $icalMsg->add('VEVENT', [
                 'UID' => $message->uid,
             ]);
@@ -880,7 +879,7 @@ class Broker
                 // EXDATE
                 $dt = DateTimeParser::parse($instance['id'], $eventInfo['timezone']);
                 // Treat is as a DATE field
-                if (strlen($instance['id']) <= 8) {
+                if (strlen((string) $instance['id']) <= 8) {
                     $event->add('DTSTART', $dt, ['VALUE' => 'DATE']);
                 } else {
                     $event->add('DTSTART', $dt);
@@ -892,7 +891,7 @@ class Broker
             if ('master' !== $instance['id']) {
                 $dt = DateTimeParser::parse($instance['id'], $eventInfo['timezone']);
                 // Treat is as a DATE field
-                if (strlen($instance['id']) <= 8) {
+                if (strlen((string) $instance['id']) <= 8) {
                     $event->add('RECURRENCE-ID', $dt, ['VALUE' => 'DATE']);
                 } else {
                     $event->add('RECURRENCE-ID', $dt);
@@ -903,7 +902,7 @@ class Broker
                 $organizer['CN'] = $message->recipientName;
             }
             $msgAttendee = $event->add('ATTENDEE', $message->sender, [
-                'PARTSTAT' => $instance['newstatus']
+                'PARTSTAT' => $instance['newstatus'],
             ]);
             if ($message->senderName) {
                 $msgAttendee['CN'] = $message->senderName;
@@ -935,11 +934,10 @@ class Broker
      * 11. significantChangeHash
      * 12. status
      *
-     * @param VCalendar $calendar
-     *
-     * @return array
+     * @throws ITipException
+     * @throws SameOrganizerForAllComponentsException
      */
-    protected function parseEventInfo(?VCalendar $calendar = null)
+    protected function parseEventInfo(VCalendar $calendar): array
     {
         $uid = null;
         $organizer = null;
@@ -950,9 +948,7 @@ class Broker
         $status = null;
         $organizerScheduleAgent = 'SERVER';
 
-        $significantChangeHash = '';
         $changeHash = '';
-
         // Now we need to collect a list of attendees, and which instances they
         // are a part of.
         $attendees = [];
@@ -981,9 +977,9 @@ class Broker
             if (isset($vevent->ORGANIZER)) {
                 if (is_null($organizer)) {
                     $organizer = $vevent->ORGANIZER->getNormalizedValue();
-                    $organizerName = isset($vevent->ORGANIZER['CN']) ? $vevent->ORGANIZER['CN'] : null;
+                    $organizerName = $vevent->ORGANIZER['CN'] ?? null;
                 } else {
-                    if (strtoupper($organizer) !== strtoupper($vevent->ORGANIZER->getNormalizedValue())) {
+                    if (strtoupper($organizer) !== strtoupper((string) $vevent->ORGANIZER->getNormalizedValue())) {
                         throw new SameOrganizerForAllComponentsException('Every instance of the event must have the same organizer.');
                     }
                 }
@@ -1009,7 +1005,7 @@ class Broker
                 foreach ($vevent->select('RRULE') as $rr) {
                     foreach ($rr->getParts() as $key => $val) {
                         // ignore default values (https://github.com/sabre-io/vobject/issues/126)
-                        if ('INTERVAL' === $key && 1 == $val) {
+                        if ('INTERVAL' === $key && '1' === (string) $val) {
                             continue;
                         }
                         if (is_array($val)) {
@@ -1021,7 +1017,7 @@ class Broker
                 sort($rrule);
             }
             if (isset($vevent->STATUS)) {
-                $status = strtoupper($vevent->STATUS->getValue());
+                $status = strtoupper((string) $vevent->STATUS->getValue());
             }
 
             $recurId = isset($vevent->{'RECURRENCE-ID'}) ? $vevent->{'RECURRENCE-ID'}->getValue() : 'master';
@@ -1037,9 +1033,9 @@ class Broker
 
             if (isset($vevent->ATTENDEE)) {
                 foreach ($vevent->ATTENDEE as $attendee) {
-                    if ($this->scheduleAgentServerRules &&
-                        isset($attendee['SCHEDULE-AGENT']) &&
-                        'CLIENT' === strtoupper($attendee['SCHEDULE-AGENT']->getValue())
+                    if ($this->scheduleAgentServerRules
+                        && isset($attendee['SCHEDULE-AGENT'])
+                        && 'CLIENT' === strtoupper((string) $attendee['SCHEDULE-AGENT']->getValue())
                     ) {
                         continue;
                     }
@@ -1076,6 +1072,7 @@ class Broker
             }
 
             foreach ($this->significantChangeProperties as $prop) {
+                // @phpstan-ignore property.dynamicName
                 if (isset($vevent->$prop)) {
                     $propertyValues = $vevent->select($prop);
 
@@ -1094,13 +1091,14 @@ class Broker
             }
 
             foreach ($this->changeProperties as $prop) {
+                // @phpstan-ignore property.dynamicName
                 if (isset($vevent->$prop)) {
                     $propertyValues = $vevent->select($prop);
 
-                    $changeHash .= $prop . ':';
+                    $changeHash .= $prop.':';
 
                     foreach ($propertyValues as $val) {
-                        $changeHash .= $val->getValue() . ';';
+                        $changeHash .= $val->getValue().';';
                     }
                 }
             }
@@ -1110,11 +1108,9 @@ class Broker
 
         asort($significantChangeEventProperties);
 
-        foreach ($significantChangeEventProperties as $eventSignificantChangeHash) {
-            $significantChangeHash .= $eventSignificantChangeHash;
-        }
+        $significantChangeHash = implode('', $significantChangeEventProperties);
         $significantChangeHash = md5($significantChangeHash);
-        $changeHash= md5($changeHash);
+        $changeHash = md5($changeHash);
 
         return compact(
             'uid',

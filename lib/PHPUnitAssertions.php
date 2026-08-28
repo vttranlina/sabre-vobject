@@ -30,9 +30,8 @@ trait PHPUnitAssertions
      *
      * @param resource|string|Component $expected
      * @param resource|string|Component $actual
-     * @param string                    $message
      */
-    public function assertVObjectEqualsVObject($expected, $actual, $message = '')
+    public function assertVObjectEqualsVObject($expected, $actual, string $message = ''): void
     {
         $getObj = function ($input) {
             if (is_resource($input)) {
@@ -42,7 +41,7 @@ trait PHPUnitAssertions
                 $input = Reader::read($input);
             }
             if (!$input instanceof Component) {
-                $this->fail('Input must be a string, stream or VObject component');
+                self::fail('Input must be a string, stream or VObject component');
             }
             unset($input->PRODID);
             if ($input instanceof Component\VCalendar && 'GREGORIAN' === (string) $input->CALSCALE) {
@@ -52,23 +51,28 @@ trait PHPUnitAssertions
             return $input;
         };
 
-        $expected = $getObj($expected)->serialize();
-        $actual = $getObj($actual)->serialize();
+        /**
+         * @var string $expectedSerialized
+         */
+        $expectedSerialized = $getObj($expected)->serialize();
+        $actualSerialized = $getObj($actual)->serialize();
 
         // Finding wildcards in expected.
-        preg_match_all('|^([A-Z]+):\\*\\*ANY\\*\\*\r$|m', $expected, $matches, PREG_SET_ORDER);
+        $result = preg_match_all('|^([A-Z]+):\\*\\*ANY\\*\\*\r$|m', $expectedSerialized, $matches, PREG_SET_ORDER);
+
+        self::assertNotFalse($result);
 
         foreach ($matches as $match) {
-            $actual = preg_replace(
+            $actualSerialized = preg_replace(
                 '|^'.preg_quote($match[1], '|').':(.*)\r$|m',
                 $match[1].':**ANY**'."\r",
-                $actual
+                (string) $actualSerialized
             );
         }
 
-        $this->assertEquals(
-            $expected,
-            $actual,
+        self::assertEquals(
+            $expectedSerialized,
+            $actualSerialized,
             $message
         );
     }

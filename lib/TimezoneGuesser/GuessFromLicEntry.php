@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Sabre\VObject\TimezoneGuesser;
 
-use DateTimeZone;
 use Sabre\VObject\Component\VTimeZone;
 use Sabre\VObject\TimeZoneUtil;
 
@@ -13,7 +12,7 @@ use Sabre\VObject\TimeZoneUtil;
  */
 class GuessFromLicEntry implements TimezoneGuesser
 {
-    public function guess(VTimeZone $vtimezone, bool $failIfUncertain = false): ?DateTimeZone
+    public function guess(VTimeZone $vtimezone, ?bool $failIfUncertain = false): ?\DateTimeZone
     {
         if (!isset($vtimezone->{'X-LIC-LOCATION'})) {
             return null;
@@ -24,7 +23,7 @@ class GuessFromLicEntry implements TimezoneGuesser
         // Libical generators may specify strings like
         // "SystemV/EST5EDT". For those we must remove the
         // SystemV part.
-        if ('SystemV/' === substr($lic, 0, 8)) {
+        if (str_starts_with($lic, 'SystemV/')) {
             $lic = substr($lic, 8);
         }
 

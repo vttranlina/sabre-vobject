@@ -1,6 +1,23 @@
 ChangeLog
 =========
 
+5.0.0 (2026-07-07)
+------------------
+* #767 Drop PHP 7.4 8.0 8.1 and support PHP 8.2 and up (@phil-davis)
+* #769 fix: minor code fixes (@phil-davis)
+* #586 PHP types (@tcitworld @phil-davis)
+
+This major release v5 declares function parameter and return types across the
+codebase. Users will need to be careful to call functions/methods with the
+correct types.
+
+Support for PHP below 8.2 has been dropped.
+This release supports PHP 8.2 and up.
+
+4.6.1 (2026-07-07)
+------------------
+* #776 fix: preserve UTC 'Z' indicator in Period JSON serialization (@bastien-roucaries @guimard @phil-davis)
+
 4.6.0 (2026-05-31)
 ------------------
 * #718 feat(VCard): add getByTypes method (@JimKnoxx)
@@ -651,7 +668,7 @@ ChangeLog
 * Updated: Windows timezone mapping to latest version from unicode.org
 * Changed: The timezone maps are now loaded in from external files, in
   lib/Sabre/VObject/timezonedata.
-* Added: Fixing badly encoded URL's from google contacts vcards.
+* Added: Fixing badly encoded URL's from Google contacts vcards.
 * Fixed: Issue #68. Couldn't decode properties ending in a colon.
 * Fixed: Issue #72. RecurrenceIterator should respect timezone in the UNTIL
   clause.
@@ -725,7 +742,7 @@ ChangeLog
 * Added: Utility to convert between 2.1, 3.0 and 4.0 vCards.
 * Added: You can now add() multiple parameters to a property in one call.
 * Added: Parameter::has() for easily checking if a parameter value exists.
-* Added: VCard::preferred() to find a preferred email, phone number, etc for a
+* Added: VCard::preferred() to find a preferred email, phone number, etc. for a
   contact.
 * Changed: All $duration properties are now public.
 * Added: A few validators for iCalendar documents.
@@ -922,7 +939,7 @@ ChangeLog
 ------------------
 
 * Fixed: Microsoft re-uses their magic numbers for different timezones,
-  specifically id 2 for both Sarajevo and Lisbon). A workaround was added to
+  (specifically id 2 for both Sarajevo and Lisbon). A workaround was added to
   deal with this.
 
 

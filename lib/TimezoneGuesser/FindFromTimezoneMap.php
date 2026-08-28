@@ -11,9 +11,9 @@ use DateTimeZone;
  */
 class FindFromTimezoneMap implements TimezoneFinder
 {
-    private $map = [];
+    private array $map = [];
 
-    private $patterns = [
+    private array $patterns = [
         '/^\((UTC|GMT)(\+|\-)[\d]{2}\:[\d]{2}\) (.*)/',
         '/^\((UTC|GMT)(\+|\-)[\d]{2}\.[\d]{2}\) (.*)/',
     ];
@@ -21,13 +21,13 @@ class FindFromTimezoneMap implements TimezoneFinder
     /**
      * @throws void
      */
-    public function find(string $tzid, bool $failIfUncertain = false): ?DateTimeZone
+    public function find(string $tzid, ?bool $failIfUncertain = false): ?\DateTimeZone
     {
         // Next, we check if the tzid is somewhere in our tzid map.
         if ($this->hasTzInMap($tzid)) {
             try {
-                return new DateTimeZone($this->getTzFromMap($tzid));
-            } catch (\Exception $e) {
+                return new \DateTimeZone($this->getTzFromMap($tzid));
+            } catch (\Exception) {
                 return null;
             }
         }
@@ -42,8 +42,8 @@ class FindFromTimezoneMap implements TimezoneFinder
             $tzidAlternate = $matches[3];
             if ($this->hasTzInMap($tzidAlternate)) {
                 try {
-                    return new DateTimeZone($this->getTzFromMap($tzidAlternate));
-                } catch (\Exception $e) {
+                    return new \DateTimeZone($this->getTzFromMap($tzidAlternate));
+                } catch (\Exception) {
                     return null;
                 }
             }
@@ -60,10 +60,8 @@ class FindFromTimezoneMap implements TimezoneFinder
      * - It's not supported by some PHP versions as well as HHVM.
      * - It also returns identifiers, that are invalid values for new DateTimeZone() on some PHP versions.
      * (See timezonedata/php-bc.php and timezonedata php-workaround.php)
-     *
-     * @return array
      */
-    private function getTzMaps()
+    private function getTzMaps(): array
     {
         if ([] === $this->map) {
             $this->map = array_merge(

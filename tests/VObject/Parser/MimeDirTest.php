@@ -2,6 +2,7 @@
 
 namespace Sabre\VObject\Parser;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\ParseException;
@@ -12,14 +13,14 @@ use Sabre\VObject\ParseException;
  */
 class MimeDirTest extends TestCase
 {
-    public function testParseError()
+    public function testParseError(): void
     {
         $this->expectException(ParseException::class);
         $mimeDir = new MimeDir();
         $mimeDir->parse(fopen(__FILE__, 'a+'));
     }
 
-    public function testDecodeLatin1()
+    public function testDecodeLatin1(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -31,10 +32,10 @@ VCF;
         $mimeDir = new MimeDir();
         $mimeDir->setCharset('ISO-8859-1');
         $vcard = $mimeDir->parse($vcard);
-        $this->assertEquals("umlaut u - \xC3\xBC", $vcard->FN->getValue());
+        self::assertEquals("umlaut u - \xC3\xBC", $vcard->FN->getValue());
     }
 
-    public function testDecodeInlineLatin1()
+    public function testDecodeInlineLatin1(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -45,10 +46,10 @@ VCF;
 
         $mimeDir = new MimeDir();
         $vcard = $mimeDir->parse($vcard);
-        $this->assertEquals("umlaut u - \xC3\xBC", $vcard->FN->getValue());
+        self::assertEquals("umlaut u - \xC3\xBC", $vcard->FN->getValue());
     }
 
-    public function testIgnoreCharsetVCard30()
+    public function testIgnoreCharsetVCard30(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -59,10 +60,10 @@ VCF;
 
         $mimeDir = new MimeDir();
         $vcard = $mimeDir->parse($vcard);
-        $this->assertEquals("foo-bar - \xFC", $vcard->FN->getValue());
+        self::assertEquals("foo-bar - \xFC", $vcard->FN->getValue());
     }
 
-    public function testDontDecodeLatin1()
+    public function testDontDecodeLatin1(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -77,17 +78,17 @@ VCF;
         // the encoding was set to UTF-8. The result is actually invalid
         // and the validator should report this, but it tests effectively
         // that we pass through the string byte-by-byte.
-        $this->assertEquals("umlaut u - \xFC", $vcard->FN->getValue());
+        self::assertEquals("umlaut u - \xFC", $vcard->FN->getValue());
     }
 
-    public function testDecodeUnsupportedCharset()
+    public function testDecodeUnsupportedCharset(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $mimeDir = new MimeDir();
         $mimeDir->setCharset('foobar');
     }
 
-    public function testDecodeUnsupportedInlineCharset()
+    public function testDecodeUnsupportedInlineCharset(): void
     {
         $this->expectException(ParseException::class);
         $vcard = <<<VCF
@@ -101,7 +102,7 @@ VCF;
         $mimeDir->parse($vcard);
     }
 
-    public function provideEmptyParserInput(): array
+    public static function provideEmptyParserInput(): array
     {
         return [
             [null, 'No input provided to parse'],
@@ -109,9 +110,7 @@ VCF;
         ];
     }
 
-    /**
-     * @dataProvider provideEmptyParserInput
-     */
+    #[DataProvider('provideEmptyParserInput')]
     public function testParseEmpty($input, $expectedExceptionMessage): void
     {
         $this->expectException(ParseException::class);
@@ -120,7 +119,7 @@ VCF;
         $mimeDir->parse($input);
     }
 
-    public function testDecodeWindows1252()
+    public function testDecodeWindows1252(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -132,10 +131,10 @@ VCF;
         $mimeDir = new MimeDir();
         $mimeDir->setCharset('Windows-1252');
         $vcard = $mimeDir->parse($vcard);
-        $this->assertEquals("Euro \xE2\x82\xAC", $vcard->FN->getValue());
+        self::assertEquals("Euro \xE2\x82\xAC", $vcard->FN->getValue());
     }
 
-    public function testDecodeWindows1252Inline()
+    public function testDecodeWindows1252Inline(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -146,10 +145,10 @@ VCF;
 
         $mimeDir = new MimeDir();
         $vcard = $mimeDir->parse($vcard);
-        $this->assertEquals("Euro \xE2\x82\xAC", $vcard->FN->getValue());
+        self::assertEquals("Euro \xE2\x82\xAC", $vcard->FN->getValue());
     }
 
-    public function testCaseInsensitiveInlineCharset()
+    public function testCaseInsensitiveInlineCharset(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -162,11 +161,11 @@ VCF;
         $mimeDir = new MimeDir();
         $vcard = $mimeDir->parse($vcard);
         // we can do a simple assertion here. As long as we don't get an exception, everything is thing
-        $this->assertEquals('Euro', $vcard->FN->getValue());
-        $this->assertEquals('Test2', $vcard->N->getValue());
+        self::assertEquals('Euro', $vcard->FN->getValue());
+        self::assertEquals('Test2', $vcard->N->getValue());
     }
 
-    public function testParsingTwiceSameContent()
+    public function testParsingTwiceSameContent(): void
     {
         $card = <<<EOF
 BEGIN:VCALENDAR
@@ -183,40 +182,34 @@ EOF;
         $mimeDir = new MimeDir();
         $vcard = $mimeDir->parse($card);
         // we can do a simple assertion here. As long as we don't get an exception, everything is fine
-        $this->assertEquals('20220612', $vcard->VEVENT->DTSTART->getValue());
+        self::assertEquals('20220612', $vcard->VEVENT->DTSTART->getValue());
     }
 
     /**
      * @covers \Sabre\VObject\Parser\MimeDir::readProperty
-     * @dataProvider provideBrokenVCalendar
-     *
-     * @param string $vcalendar
-     *
-     * @return void
      */
-    public function testBrokenMultilineContentDoesNotBreakImportWhenSetToIgnoreBrokenLines($vcalendar)
+    #[DataProvider('provideBrokenVCalendar')]
+    public function testBrokenMultilineContentDoesNotBreakImportWhenSetToIgnoreBrokenLines(string $vcalendar): void
     {
         $mimeDir = new MimeDir(null, MimeDir::OPTION_IGNORE_INVALID_LINES);
         $vcalendar = $mimeDir->parse($vcalendar);
-        $this->assertInstanceOf(VCalendar::class, $vcalendar);
+        self::assertInstanceOf(VCalendar::class, $vcalendar);
     }
 
     /**
      * @covers \Sabre\VObject\Parser\MimeDir::readProperty
-     * @dataProvider provideBrokenVCalendar
      *
      * @param string $vcalendar
-     *
-     * @return void
      */
-    public function testBrokenMultilineContentDoesBreakImport($vcalendar)
+    #[DataProvider('provideBrokenVCalendar')]
+    public function testBrokenMultilineContentDoesBreakImport($vcalendar): void
     {
         $mimeDir = new MimeDir();
         $this->expectException(ParseException::class);
         $mimeDir->parse($vcalendar);
     }
 
-    public function provideBrokenVCalendar()
+    public static function provideBrokenVCalendar(): array
     {
         return [[<<<EOF
 BEGIN:VCALENDAR
@@ -260,7 +253,7 @@ OAKLAND, CA 94611:
 SEQUENCE:0
 END:VEVENT
 END:VCALENDAR
-EOF
+EOF,
         ]];
     }
 
@@ -278,6 +271,7 @@ EOF;
 
         $mimeDir = new MimeDir();
         $vevent = $mimeDir->parse($iCal);
+        // @phpstan-ignore property.dynamicName
         self::assertEquals('test', $vevent->VEVENT->{0}->getValue());
     }
 

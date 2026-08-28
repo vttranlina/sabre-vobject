@@ -4,7 +4,7 @@ namespace Sabre\VObject\ITip;
 
 class BrokerProcessMessageTest extends BrokerTester
 {
-    public function testRequestNew()
+    public function testRequestNew(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -27,10 +27,10 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $result = $this->process($itip, null, $expected);
+        $this->process($itip, null, $expected);
     }
 
-    public function testRequestUpdate()
+    public function testRequestUpdate(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -61,10 +61,10 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $result = $this->process($itip, $old, $expected);
+        $this->process($itip, $old, $expected);
     }
 
-    public function testCancel()
+    public function testCancel(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -96,10 +96,10 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $result = $this->process($itip, $old, $expected);
+        $this->process($itip, $old, $expected);
     }
 
-    public function testCancelNoExistingEvent()
+    public function testCancelNoExistingEvent(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -115,10 +115,10 @@ ICS;
         $old = null;
         $expected = null;
 
-        $result = $this->process($itip, $old, $expected);
+        $this->process($itip, $old, $expected);
     }
 
-    public function testCancelInstanceOfRecurring()
+    public function testCancelInstanceOfRecurring(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -222,10 +222,10 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $result = $this->process($itip, $old, $expected);
+        $this->process($itip, $old, $expected);
     }
 
-    public function testCancelExistingInstanceOfRecurring()
+    public function testCancelExistingInstanceOfRecurring(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -310,10 +310,10 @@ END:VEVENT
 END:VCALENDAR
 ICS;
 
-        $result = $this->process($itip, $old, $expected);
+        $this->process($itip, $old, $expected);
     }
 
-    public function testUnsupportedComponent()
+    public function testUnsupportedComponent(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -328,10 +328,10 @@ ICS;
         $old = null;
         $expected = null;
 
-        $result = $this->process($itip, $old, $expected);
+        $this->process($itip, $old, $expected);
     }
 
-    public function testUnsupportedMethod()
+    public function testUnsupportedMethod(): void
     {
         $itip = <<<ICS
 BEGIN:VCALENDAR
@@ -347,6 +347,6 @@ ICS;
         $old = null;
         $expected = null;
 
-        $result = $this->process($itip, $old, $expected);
+        $this->process($itip, $old, $expected);
     }
 }

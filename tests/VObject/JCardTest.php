@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class JCardTest extends TestCase
 {
-    public function testToJCard()
+    public function testToJCard(): void
     {
         $card = new Component\VCard([
             'VERSION' => '4.0',
@@ -122,15 +122,15 @@ class JCardTest extends TestCase
                     'adr',
                     new \stdClass(),
                     'text',
-                        [
-                            '',
-                            '',
-                            ['My Street', 'Left Side', 'Second Shack'],
-                            'Hometown',
-                            'PA',
-                            '18252',
-                            'U.S.A',
-                        ],
+                    [
+                        '',
+                        '',
+                        ['My Street', 'Left Side', 'Second Shack'],
+                        'Hometown',
+                        'PA',
+                        '18252',
+                        'U.S.A',
+                    ],
                 ],
                 [
                     'x-truncated',
@@ -189,6 +189,6 @@ class JCardTest extends TestCase
             ],
         ];
 
-        $this->assertEquals($expected, $card->jsonSerialize());
+        self::assertEquals($expected, $card->jsonSerialize());
     }
 }

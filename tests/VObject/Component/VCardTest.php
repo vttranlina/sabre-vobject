@@ -2,15 +2,14 @@
 
 namespace Sabre\VObject\Component;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sabre\VObject;
 
 class VCardTest extends TestCase
 {
-    /**
-     * @dataProvider validateData
-     */
-    public function testValidate($input, $expectedWarnings, $expectedRepairedOutput)
+    #[DataProvider('validateData')]
+    public function testValidate(string $input, array $expectedWarnings, string $expectedRepairedOutput): void
     {
         $vcard = VObject\Reader::read($input);
 
@@ -21,17 +20,17 @@ class VCardTest extends TestCase
             $warnMsg[] = $warning['message'];
         }
 
-        $this->assertEquals($expectedWarnings, $warnMsg);
+        self::assertEquals($expectedWarnings, $warnMsg);
 
         $vcard->validate(VObject\Component::REPAIR);
 
-        $this->assertEquals(
+        self::assertEquals(
             $expectedRepairedOutput,
             $vcard->serialize()
         );
     }
 
-    public function validateData()
+    public static function validateData(): array
     {
         $tests = [];
 
@@ -112,25 +111,25 @@ class VCardTest extends TestCase
         return $tests;
     }
 
-    public function testGetDocumentType()
+    public function testGetDocumentType(): void
     {
         $vcard = new VCard([], false);
         $vcard->VERSION = '2.1';
-        $this->assertEquals(VCard::VCARD21, $vcard->getDocumentType());
+        self::assertEquals(VCard::VCARD21, $vcard->getDocumentType());
 
         $vcard = new VCard([], false);
         $vcard->VERSION = '3.0';
-        $this->assertEquals(VCard::VCARD30, $vcard->getDocumentType());
+        self::assertEquals(VCard::VCARD30, $vcard->getDocumentType());
 
         $vcard = new VCard([], false);
         $vcard->VERSION = '4.0';
-        $this->assertEquals(VCard::VCARD40, $vcard->getDocumentType());
+        self::assertEquals(VCard::VCARD40, $vcard->getDocumentType());
 
         $vcard = new VCard([], false);
-        $this->assertEquals(VCard::UNKNOWN, $vcard->getDocumentType());
+        self::assertEquals(VCard::UNKNOWN, $vcard->getDocumentType());
     }
 
-    public function testGetByType()
+    public function testGetByType(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -141,13 +140,13 @@ END:VCARD
 VCF;
 
         $vcard = VObject\Reader::read($vcard);
-        $this->assertEquals('1@example.org', $vcard->getByType('EMAIL', 'home')->getValue());
-        $this->assertEquals('2@example.org', $vcard->getByType('EMAIL', 'work')->getValue());
-        $this->assertNull($vcard->getByType('EMAIL', 'non-existent'));
-        $this->assertNull($vcard->getByType('ADR', 'non-existent'));
+        self::assertEquals('1@example.org', $vcard->getByType('EMAIL', 'home')->getValue());
+        self::assertEquals('2@example.org', $vcard->getByType('EMAIL', 'work')->getValue());
+        self::assertNull($vcard->getByType('EMAIL', 'non-existent'));
+        self::assertNull($vcard->getByType('ADR', 'non-existent'));
     }
 
-    public function testGetByTypes()
+    public function testGetByTypes(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -168,7 +167,7 @@ VCF;
         self::assertNull($vcard->getByTypes('EMAIL', ['non-existent']));
     }
 
-    public function testPreferredNoPref()
+    public function testPreferredNoPref(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -179,10 +178,10 @@ END:VCARD
 VCF;
 
         $vcard = VObject\Reader::read($vcard);
-        $this->assertEquals('1@example.org', $vcard->preferred('EMAIL')->getValue());
+        self::assertEquals('1@example.org', $vcard->preferred('EMAIL')->getValue());
     }
 
-    public function testPreferredWithPref()
+    public function testPreferredWithPref(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -193,10 +192,10 @@ END:VCARD
 VCF;
 
         $vcard = VObject\Reader::read($vcard);
-        $this->assertEquals('2@example.org', $vcard->preferred('EMAIL')->getValue());
+        self::assertEquals('2@example.org', $vcard->preferred('EMAIL')->getValue());
     }
 
-    public function testPreferredWith40Pref()
+    public function testPreferredWith40Pref(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -208,10 +207,10 @@ END:VCARD
 VCF;
 
         $vcard = VObject\Reader::read($vcard);
-        $this->assertEquals('3@example.org', $vcard->preferred('EMAIL')->getValue());
+        self::assertEquals('3@example.org', $vcard->preferred('EMAIL')->getValue());
     }
 
-    public function testPreferredNotFound()
+    public function testPreferredNotFound(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -220,10 +219,10 @@ END:VCARD
 VCF;
 
         $vcard = VObject\Reader::read($vcard);
-        $this->assertNull($vcard->preferred('EMAIL'));
+        self::assertNull($vcard->preferred('EMAIL'));
     }
 
-    public function testNoUIDCardDAV()
+    public function testNoUIDCardDAV(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -231,7 +230,7 @@ VERSION:4.0
 FN:John Doe
 END:VCARD
 VCF;
-        $this->assertValidate(
+        self::assertValidate(
             $vcard,
             VCard::PROFILE_CARDDAV,
             3,
@@ -239,7 +238,7 @@ VCF;
         );
     }
 
-    public function testNoUIDNoCardDAV()
+    public function testNoUIDNoCardDAV(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -247,7 +246,7 @@ VERSION:4.0
 FN:John Doe
 END:VCARD
 VCF;
-        $this->assertValidate(
+        self::assertValidate(
             $vcard,
             0,
             2,
@@ -255,7 +254,7 @@ VCF;
         );
     }
 
-    public function testNoUIDNoCardDAVRepair()
+    public function testNoUIDNoCardDAVRepair(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -263,7 +262,7 @@ VERSION:4.0
 FN:John Doe
 END:VCARD
 VCF;
-        $this->assertValidate(
+        self::assertValidate(
             $vcard,
             VCard::REPAIR,
             1,
@@ -271,7 +270,7 @@ VCF;
         );
     }
 
-    public function testVCard21CardDAV()
+    public function testVCard21CardDAV(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -280,7 +279,7 @@ FN:John Doe
 UID:foo
 END:VCARD
 VCF;
-        $this->assertValidate(
+        self::assertValidate(
             $vcard,
             VCard::PROFILE_CARDDAV,
             3,
@@ -288,7 +287,7 @@ VCF;
         );
     }
 
-    public function testVCard21NoCardDAV()
+    public function testVCard21NoCardDAV(): void
     {
         $vcard = <<<VCF
 BEGIN:VCARD
@@ -297,22 +296,22 @@ FN:John Doe
 UID:foo
 END:VCARD
 VCF;
-        $this->assertValidate(
+        self::assertValidate(
             $vcard,
             0,
             0
         );
     }
 
-    public function assertValidate($vcf, $options, $expectedLevel, $expectedMessage = null)
+    public function assertValidate($vcf, $options, int $expectedLevel, ?string $expectedMessage = null): void
     {
         $vcal = VObject\Reader::read($vcf);
         $result = $vcal->validate($options);
 
-        $this->assertValidateResult($result, $expectedLevel, $expectedMessage);
+        self::assertValidateResult($result, $expectedLevel, $expectedMessage);
     }
 
-    public function assertValidateResult($input, $expectedLevel, $expectedMessage = null)
+    public function assertValidateResult($input, int $expectedLevel, ?string $expectedMessage = null): void
     {
         $messages = [];
         foreach ($input as $warning) {
@@ -320,12 +319,12 @@ VCF;
         }
 
         if (0 === $expectedLevel) {
-            $this->assertEquals(0, count($input), 'No validation messages were expected. We got: '.implode(', ', $messages));
+            self::assertCount(0, $input, 'No validation messages were expected. We got: '.implode(', ', $messages));
         } else {
-            $this->assertEquals(1, count($input), 'We expected exactly 1 validation message, We got: '.implode(', ', $messages));
+            self::assertCount(1, $input, 'We expected exactly 1 validation message, We got: '.implode(', ', $messages));
 
-            $this->assertEquals($expectedMessage, $input[0]['message']);
-            $this->assertEquals($expectedLevel, $input[0]['level']);
+            self::assertEquals($expectedMessage, $input[0]['message']);
+            self::assertEquals($expectedLevel, $input[0]['level']);
         }
     }
 }

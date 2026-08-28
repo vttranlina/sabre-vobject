@@ -1,15 +1,5 @@
-<phpunit
-  colors="true"
-  bootstrap="bootstrap.php"
-  convertErrorsToExceptions="true"
-  convertNoticesToExceptions="true"
-  convertWarningsToExceptions="true"
-  beStrictAboutTestsThatDoNotTestAnything="true"
-  beStrictAboutOutputDuringTests="true"
-  failOnRisky="true"
-  failOnWarning="true"
-  enforceTimeLimit="true"
-  >
+<?xml version="1.0"?>
+<phpunit colors="true" bootstrap="bootstrap.php" beStrictAboutTestsThatDoNotTestAnything="true" beStrictAboutOutputDuringTests="true" failOnRisky="true" failOnWarning="true" enforceTimeLimit="true" cacheDirectory=".phpunit.cache">
   <php>
     <ini name="error_reporting" value="E_ALL"/>
   </php>
@@ -18,10 +8,9 @@
       <directory>.</directory>
     </testsuite>
   </testsuites>
-
-  <filter>
-    <whitelist addUncoveredFilesFromWhitelist="true">
-        <directory suffix=".php">../lib/</directory>
-   </whitelist>
-  </filter>
+  <source>
+    <include>
+      <directory suffix=".php">../lib/</directory>
+    </include>
+  </source>
 </phpunit>

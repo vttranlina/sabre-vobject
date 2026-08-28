@@ -10,13 +10,13 @@ class VCardTest extends TestCase
     public function createStream($data)
     {
         $stream = fopen('php://memory', 'r+');
-        fwrite($stream, $data);
+        fwrite($stream, (string) $data);
         rewind($stream);
 
         return $stream;
     }
 
-    public function testVCardImportValidVCard()
+    public function testVCardImportValidVCard(): void
     {
         $data = <<<EOT
 BEGIN:VCARD
@@ -31,12 +31,13 @@ EOT;
         while ($objects->getNext()) {
             ++$count;
         }
-        $this->assertEquals(1, $count);
+        self::assertEquals(1, $count);
     }
 
-    public function testVCardImportWrongType()
+    public function testVCardImportWrongType(): void
     {
         $this->expectException(ParseException::class);
+        $event = [];
         $event[] = <<<EOT
 BEGIN:VEVENT
 UID:foo1
@@ -64,11 +65,11 @@ EOT;
 
         $splitter = new VCard($tempFile);
 
-        while ($object = $splitter->getNext()) {
+        while ($splitter->getNext()) {
         }
     }
 
-    public function testVCardImportValidVCardsWithCategories()
+    public function testVCardImportValidVCardsWithCategories(): void
     {
         $data = <<<EOT
 BEGIN:VCARD
@@ -93,13 +94,13 @@ EOT;
         $splitter = new VCard($tempFile);
 
         $count = 0;
-        while ($object = $splitter->getNext()) {
+        while ($splitter->getNext()) {
             ++$count;
         }
-        $this->assertEquals(4, $count);
+        self::assertEquals(4, $count);
     }
 
-    public function testVCardImportVCardNoComponent()
+    public function testVCardImportVCardNoComponent(): void
     {
         $this->expectException(ParseException::class);
         $data = <<<EOT
@@ -116,11 +117,11 @@ EOT;
 
         $this->expectException(ParseException::class);
         $this->expectExceptionMessage('Invalid MimeDir file. Unexpected component: "BEGIN:VCARD" in document type VCARD');
-        while ($object = $splitter->getNext()) {
+        while ($splitter->getNext()) {
         }
     }
 
-    public function testVCardImportQuotedPrintableOptionForgivingLeading()
+    public function testVCardImportQuotedPrintableOptionForgivingLeading(): void
     {
         $data = <<<EOT
 BEGIN:VCARD
@@ -137,13 +138,13 @@ EOT;
         $splitter = new VCard($tempFile, \Sabre\VObject\Parser\Parser::OPTION_FORGIVING);
 
         $count = 0;
-        while ($object = $splitter->getNext()) {
+        while ($splitter->getNext()) {
             ++$count;
         }
-        $this->assertEquals(2, $count);
+        self::assertEquals(2, $count);
     }
 
-    public function testVCardImportEndOfData()
+    public function testVCardImportEndOfData(): void
     {
         $data = <<<EOT
 BEGIN:VCARD
@@ -153,12 +154,12 @@ EOT;
         $tempFile = $this->createStream($data);
 
         $objects = new VCard($tempFile);
-        $object = $objects->getNext();
+        $objects->getNext();
 
-        $this->assertNull($objects->getNext());
+        self::assertNull($objects->getNext());
     }
 
-    public function testVCardImportCheckInvalidArgumentException()
+    public function testVCardImportCheckInvalidArgumentException(): void
     {
         $this->expectException(ParseException::class);
         $data = <<<EOT
@@ -172,7 +173,7 @@ EOT;
         }
     }
 
-    public function testVCardImportMultipleValidVCards()
+    public function testVCardImportMultipleValidVCards(): void
     {
         $data = <<<EOT
 BEGIN:VCARD
@@ -190,10 +191,10 @@ EOT;
         while ($objects->getNext()) {
             ++$count;
         }
-        $this->assertEquals(2, $count);
+        self::assertEquals(2, $count);
     }
 
-    public function testImportMultipleSeparatedWithNewLines()
+    public function testImportMultipleSeparatedWithNewLines(): void
     {
         $data = <<<EOT
 BEGIN:VCARD
@@ -214,10 +215,10 @@ EOT;
         while ($objects->getNext()) {
             ++$count;
         }
-        $this->assertEquals(2, $count);
+        self::assertEquals(2, $count);
     }
 
-    public function testVCardImportVCardWithoutUID()
+    public function testVCardImportVCardWithoutUID(): void
     {
         $data = <<<EOT
 BEGIN:VCARD
@@ -232,6 +233,6 @@ EOT;
             ++$count;
         }
 
-        $this->assertEquals(1, $count);
+        self::assertEquals(1, $count);
     }
 }
