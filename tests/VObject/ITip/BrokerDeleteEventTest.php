@@ -335,14 +335,14 @@ ICS;
 
         $expected = [
             [
-                'uid'           => 'foobar',
-                'method'        => 'CANCEL',
-                'component'     => 'VEVENT',
-                'sender'        => 'mailto:strunk@example.org',
-                'senderName'    => 'Strunk',
-                'recipient'     => 'mailto:one@example.org',
+                'uid' => 'foobar',
+                'method' => 'CANCEL',
+                'component' => 'VEVENT',
+                'sender' => 'mailto:strunk@example.org',
+                'senderName' => 'Strunk',
+                'recipient' => 'mailto:one@example.org',
                 'recipientName' => 'One',
-                'message'       => <<<ICS
+                'message' => <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Sabre//Sabre VObject $version//EN
