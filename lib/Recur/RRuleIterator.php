@@ -54,18 +54,19 @@ class RRuleIterator implements \Iterator
      * If not, advance to the first valid occurrence without incrementing the counter.
      * See: https://github.com/linagora/esn-sabre/issues/50
      */
-    private function skipInvalidStart()
+    private function skipInvalidStart(): void
     {
         if ('yearly' === $this->frequency && $this->byMonth) {
             $currentMonth = (int) $this->currentDate->format('n');
-            if (!in_array($currentMonth, $this->byMonth)) {
+            $validMonths = array_map(static fn ($month): int => (int) $month, $this->byMonth);
+            if (!in_array($currentMonth, $validMonths, true)) {
                 // DTSTART month is not in BYMONTH, advance to first valid occurrence
                 $this->nextYearly();
             } elseif ($this->byMonthDay || $this->byDay) {
                 // Month is valid, but check if day is valid
                 $currentDay = (int) $this->currentDate->format('j');
-                $validDays = $this->getMonthlyOccurrences();
-                if (!in_array($currentDay, $validDays)) {
+                $validDays = array_map(static fn ($day): int => (int) $day, $this->getMonthlyOccurrences());
+                if (!in_array($currentDay, $validDays, true)) {
                     // Day is not valid, advance to first valid occurrence
                     $this->nextYearly();
                 }

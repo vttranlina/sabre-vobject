@@ -2,7 +2,6 @@
 
 namespace Sabre\VObject\ITip;
 
-use DateTimeZone;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\Component\VEvent;
 use Sabre\VObject\DateTimeParser;
@@ -322,7 +321,7 @@ class Broker
                     // It's an exception to a recurring event, we try to find it in the original event to remove it
                     if (isset($component->{'RECURRENCE-ID'})) {
                         foreach ($existingObject->select('VEVENT') as $vEvent) {
-                            if (isset($vEvent->{'RECURRENCE-ID'}) && ($vEvent->{'RECURRENCE-ID'}->getDateTime() == $component->{'RECURRENCE-ID'}->getDateTime())) {
+                            if (isset($vEvent->{'RECURRENCE-ID'}) && $vEvent->{'RECURRENCE-ID'}->getDateTime()->getTimestamp() === $component->{'RECURRENCE-ID'}->getDateTime()->getTimestamp()) {
                                 $existingObject->remove($vEvent);
 
                                 break;
@@ -387,7 +386,7 @@ class Broker
 
             if (!$cancelWholeEvent) {
                 $exDates = [];
-                $masterTimeZone = isset($masterObject->EXDATE) ? $masterObject->DTSTART->getDateTime()->getTimeZone() : new DateTimeZone('UTC');
+                $masterTimeZone = $masterObject->DTSTART->getDateTime()->getTimeZone();
 
                 if (isset($masterObject->EXDATE)) {
 
@@ -409,7 +408,7 @@ class Broker
                 }
 
                 foreach ($instancesToCancel as $instance) {
-                    $instance->setTimezone($masterTimeZone);
+                    $instance = $instance->setTimezone($masterTimeZone);
                     $exDates[] = $instance;
                 }
 
@@ -688,7 +687,7 @@ class Broker
 
                 foreach ($attendee['newInstances'] as $instanceId => $instanceInfo) {
                     $currentEvent = clone $eventInfo['instances'][$instanceId];
-                    if(isset($currentEvent->VALARM) && $currentEvent->VALARM->ACTION->getValue() == 'EMAIL') {
+                    if (isset($currentEvent->VALARM) && $currentEvent->VALARM->ACTION->getValue() === 'EMAIL') {
                         $currentEvent->VALARM->ATTENDEE->setValue($attendee['href']);
                     }
 
