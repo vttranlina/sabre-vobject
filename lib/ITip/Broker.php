@@ -234,6 +234,11 @@ class Broker
 
             $eventInfo = $oldEventInfo;
 
+            // An attendee cannot send a scheduling reply without an organizer.
+            if (!$eventInfo['organizer']) {
+                return [];
+            }
+
             if (in_array($eventInfo['organizer'], $userHref, true)) {
                 // This is an organizer deleting the event.
                 $eventInfo['attendees'] = [];
