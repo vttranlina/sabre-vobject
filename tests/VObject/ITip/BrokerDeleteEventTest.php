@@ -307,6 +307,24 @@ ICS;
         $this->parse($oldMessage, $newMessage, $expected, 'mailto:one@example.org');
     }
 
+    public function testAttendeeDeleteWithoutOrganizer(): void
+    {
+        $oldMessage = <<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:foobar
+SEQUENCE:1
+ATTENDEE;CN=One:mailto:one@example.org
+DTSTART:20140716T120000Z
+DTEND:20140716T130000Z
+END:VEVENT
+END:VCALENDAR
+ICS;
+
+        $this->parse($oldMessage, null, [], 'mailto:one@example.org');
+    }
+
     public function testOrganizerDeleteEventWithAttendeeAndAlarm(): void
     {
         $oldMessage = <<<ICS
